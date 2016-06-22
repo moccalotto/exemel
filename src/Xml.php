@@ -61,7 +61,7 @@ class Xml
         return $this->root;
     }
 
-    public function indentedXml()
+    public function formatted()
     {
         $doc = dom_import_simplexml($this->root)->ownerDocument;
         $doc->preserveWhiteSpace = false;

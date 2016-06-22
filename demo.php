@@ -69,4 +69,4 @@ ensure((string) $xml->root()->foo[1]->bar == 'el2');
 //   </foo>
 // </root>
 
-echo $xml->indentedXml();
+echo $xml->formatted();
