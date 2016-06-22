@@ -76,8 +76,8 @@ XML;
 
 XML;
         $this->beConstructedWith(new SimpleXmlElement('<root></root>'));
-        $this->set('foo/bar[ding]', 'dong');
-        $this->get('foo/bar[ding]')->shouldBe('dong');
+        $this->set('foo/bar/[ding]', 'dong');
+        $this->get('foo/bar/[ding]')->shouldBe('dong');
         $this->root()->foo->bar->attributes()->count()->shouldBe(1);
         $this->formatted()->shouldBe($expected);
     }
@@ -100,11 +100,45 @@ XML;
         $this->beConstructedWith(new SimpleXmlElement('<root></root>'));
 
         $this->set('foo/bar', 'will-be-overwritten');
-        $this->set('foo/bar[ding]', 'will-be-overwritten');
+        $this->set('foo/bar/[ding]', 'will-be-overwritten');
+
+        $this->set('foo/bar', 'el1');
+        $this->set('foo/bar/[ding]', 'dong');
+        $this->set('foo[]/bar', 'el2');
+        $this->formatted()->shouldBe($expected);
+    }
+
+
+    public function it_can_read_element_values()
+    {
+        $this->beConstructedWith(
+            new SimpleXmlElement('<root><foo>FOO</foo><bar>BAR</bar><baz><sub>SUB</sub></baz></root>')
+        );
+        $this->get('foo')->shouldBe('FOO');
+        $this->get('bar')->shouldBe('BAR');
+        $this->get('baz')->shouldBe('');
+        $this->get('baz/sub')->shouldBe('SUB');
+        $this->get('fling')->shouldBe(null);
+    }
+
+    public function it_can_make_complex_reads()
+    {
+        $this->beConstructedWith(new SimpleXmlElement('<root></root>'));
+
+        $this->set('foo/bar', 'will-be-overwritten');
+        $this->set('foo/bar/[ding]', 'will-be-overwritten');
 
         $this->set('foo/bar', 'el1');
         $this->set('foo/bar[ding]', 'dong');
         $this->set('foo[]/bar', 'el2');
-        $this->formatted()->shouldBe($expected);
+        $this->set('foo[]/bar', 'el3');
+        $this->set('foo[3]/bar[ding]', 'dong');
+        $this->set('foo[3]/bar[1]/[ding]', 'dong');
+
+        $this->get('foo/bar')->shouldBe('el1');
+        $this->get('foo[1]/bar')->shouldBe('el2');
+        $this->get('foo[2]/bar')->shouldBe('el3');
+        $this->get('foo[3]/bar[ding]')->shouldBe('dong');
+        $this->get('foo[3]/bar[1]/[ding]')->shouldBe('dong');
     }
 }

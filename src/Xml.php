@@ -32,7 +32,7 @@ class Xml
         ];
     }
 
-    protected function nextElement($root, $pathEntry)
+    protected function getOrCreateNextElement($root, $pathEntry)
     {
         list($elementName, $elementIndex) = $this->parsePathEntry($pathEntry);
 
@@ -51,6 +51,30 @@ class Xml
         // index defined, but does not exist - add it if possible
         if (!isset($root->$elementName[$elementIndex])) {
             $root->$elementName[$elementIndex] = null;
+        }
+
+        return $root->$elementName[$elementIndex];
+    }
+
+    protected function getNextElement($root, $pathEntry)
+    {
+        list($elementName, $elementIndex) = $this->parsePathEntry($pathEntry);
+
+        // index is '' - always add an element
+        if ($elementIndex === '') {
+            throw new LogicException('Bad operator []');
+        }
+
+        // no index defined, add an element if one does not exist
+        if ($elementIndex === null) {
+            return isset($root->$elementName)
+                ? $root->$elementName
+                : null;
+        }
+
+        // index defined, but does not exist - add it if possible
+        if (!isset($root->$elementName[$elementIndex])) {
+            return null;
         }
 
         return $root->$elementName[$elementIndex];
@@ -95,7 +119,7 @@ class Xml
         // navigate to the right place in the xml - create entries ad hoc as needed
         $xml = $this->root;
         foreach ($entries as $pathEntry) {
-            $xml = $this->nextElement($xml, $pathEntry);
+            $xml = $this->getOrCreateNextElement($xml, $pathEntry);
         }
 
         list($elementName, $elementIndex) = $this->parsePathEntry($lastEntry);
@@ -118,7 +142,16 @@ class Xml
             return $this;
         }
 
-        $xml->$elementName[$elementIndex] = $value;
+        // Old versions of php did not allow adding attributes to
+        // non-existing elements by implicitly creating it.
+        // We have to explicitly create the element.
+        if (is_string($elementIndex) && empty($xml->$elementName)) {
+            $el = $xml->addChild($elementName);
+        } else {
+            $el = $xml->$elementName;
+        }
+
+        $el[$elementIndex] = $value;
 
         return $this;
     }
@@ -132,7 +165,10 @@ class Xml
         // navigate to the right place in the xml - create entries ad hoc as needed
         $xml = $this->root;
         foreach ($entries as $pathEntry) {
-            $xml = $this->nextElement($xml, $pathEntry);
+            $xml = $this->getNextElement($xml, $pathEntry);
+            if ($xml === null) {
+                return null;
+            }
         }
 
         list($elementName, $elementIndex) = $this->parsePathEntry($lastEntry);
@@ -142,15 +178,21 @@ class Xml
         }
 
         if ($elementIndex === null) {
-            return strval($xml->$elementName);
+            return isset($xml->$elementName) ? strval($xml->$elementName) : null;
         }
 
         if ($elementName == '') {
-            return strval($xml[$elementIndex]);
+            return isset($xml[$elementIndex]) ? strval($xml[$elementIndex]) : null;
+        }
+
+        if (!isset($xml->$elementName)) {
+            return null;
+        }
+
+        if (!isset($xml->$elementName[$elementIndex])) {
+            return null;
         }
 
         return strval($xml->$elementName[$elementIndex]);
-
-        return $this;
     }
 }

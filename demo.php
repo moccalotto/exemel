@@ -69,4 +69,7 @@ ensure((string) $xml->root()->foo[1]->bar == 'el2');
 //   </foo>
 // </root>
 
-echo $xml->formatted();
+foreach ($xml->root()->xpath('//*') as $element) {
+    print PHP_EOL;
+    print_r($element->asXml());
+}
