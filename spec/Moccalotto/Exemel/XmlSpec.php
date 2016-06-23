@@ -9,6 +9,23 @@ use PhpSpec\ObjectBehavior;
 
 class XmlSpec extends ObjectBehavior
 {
+    public function getMatchers()
+    {
+        return [
+            'beXmlSimilar' => function ($selfXml, $otherXml) {
+                $selfParser = xml_parser_create();
+                xml_parse_into_struct($selfParser, $selfXml, $selfArray, $selfIndex);
+                xml_parser_free($selfParser);
+
+                $otherParser = xml_parser_create();
+                xml_parse_into_struct($otherParser, $otherXml, $otherArray, $otherIndex);
+                xml_parser_free($otherParser);
+
+                return $selfArray == $otherArray && $selfIndex == $otherIndex;
+            },
+        ];
+    }
+
     function it_is_initializable()
     {
         $this->beConstructedWith(new SimpleXmlElement('<root></root>'));
@@ -23,13 +40,14 @@ class XmlSpec extends ObjectBehavior
 
     function it_can_format_xml()
     {
-        $this->beConstructedWith(new SimpleXmlElement('<root></root>'));
-        $doc = <<<XML
+        $expected = <<<XML
 <?xml version="1.0" encoding="UTF-8"?>
 <root/>
-
 XML;
-        $this->formatted()->shouldBe($doc);
+        $this->beConstructedWith(new SimpleXmlElement('<root></root>'));
+
+        $this->root()->asXml()->shouldBeXmlSimilar($expected);
+        $this->formatted()->shouldBeXmlSimilar($expected);
     }
 
     function it_can_manipulate_attributes_on_root()
@@ -43,7 +61,7 @@ XML;
         $this->set('[attr]', 'attr0')->shouldHaveType(Xml::class);
         $this->get('[attr]')->shouldBe('attr0');
         $this->root()->attributes()->count()->shouldBe(1);
-        $this->formatted()->shouldBe($expected);
+        $this->formatted()->shouldBeXmlSimilar($expected);
     }
 
     function it_can_add_elements_to_root()
@@ -61,7 +79,7 @@ XML;
         $this->set('foo/bar', 'el1');
         $this->get('foo/bar')->shouldBe('el1');
         $this->root()->foo->bar->__toString()->shouldBe('el1');
-        $this->formatted()->shouldBe($expected);
+        $this->formatted()->shouldBeXmlSimilar($expected);
     }
 
     function it_can_manipulate_attributes_on_nested_elements()
@@ -79,7 +97,7 @@ XML;
         $this->set('foo/bar/[ding]', 'dong');
         $this->get('foo/bar/[ding]')->shouldBe('dong');
         $this->root()->foo->bar->attributes()->count()->shouldBe(1);
-        $this->formatted()->shouldBe($expected);
+        $this->formatted()->shouldBeXmlSimilar($expected);
     }
 
 
@@ -105,7 +123,7 @@ XML;
         $this->set('foo/bar', 'el1');
         $this->set('foo/bar/[ding]', 'dong');
         $this->set('foo[]/bar', 'el2');
-        $this->formatted()->shouldBe($expected);
+        $this->formatted()->shouldBeXmlSimilar($expected);
     }
 
 
