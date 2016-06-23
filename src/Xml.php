@@ -48,12 +48,16 @@ class Xml
                 : $root->addChild($elementName);
         }
 
+        //  $root->$elementName[$elementIndex] can only be accessed in php7+
+        //  is $el = $root->$elementName; $el[$elementIndex] as a workaround
+        $el = $root->$elementName;
+
         // index defined, but does not exist - add it if possible
-        if (!isset($root->$elementName[$elementIndex])) {
-            $root->$elementName[$elementIndex] = null;
+        if (!isset($el[$elementIndex])) {
+            $el[$elementIndex] = null;
         }
 
-        return $root->$elementName[$elementIndex];
+        return $el[$elementIndex];
     }
 
     protected function getNextElement($root, $pathEntry)
@@ -71,13 +75,16 @@ class Xml
                 ? $root->$elementName
                 : null;
         }
+        //  $root->$elementName[$elementIndex] can only be accessed in php7+
+        //  is $el = $root->$elementName; $el[$elementIndex] as a workaround
+        $el = $root->$elementName;
 
         // index defined, but does not exist - add it if possible
-        if (!isset($root->$elementName[$elementIndex])) {
+        if (!isset($el[$elementIndex])) {
             return null;
         }
 
-        return $root->$elementName[$elementIndex];
+        return $el[$elementIndex];
     }
 
     public function root()
@@ -189,10 +196,14 @@ class Xml
             return null;
         }
 
-        if (!isset($xml->$elementName[$elementIndex])) {
+        //  $root->$elementName[$elementIndex] can only be accessed in php7+
+        //  is $el = $root->$elementName; $el[$elementIndex] as a workaround
+        $el = $xml->$elementName;
+
+        if (!isset($el[$elementIndex])) {
             return null;
         }
 
-        return strval($xml->$elementName[$elementIndex]);
+        return strval($el[$elementIndex]);
     }
 }
