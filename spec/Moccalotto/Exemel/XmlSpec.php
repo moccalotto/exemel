@@ -159,4 +159,73 @@ XML;
         $this->get('foo[3]/bar[ding]')->shouldBe('dong');
         $this->get('foo[3]/bar[1]/[ding]')->shouldBe('dong');
     }
+
+    public function it_can_detect_similar_xml()
+    {
+        $self = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <foo>
+    <bar a="a" b="b">el1</bar>
+  </foo>
+  <baz c="c" d="d" />
+</root>
+
+XML;
+        $matchesAll = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <foo>
+    <bar b="b" a="a">el1</bar>
+  </foo>
+  <baz d="d" c="c"></baz>
+</root>
+
+XML;
+
+        $matchesCase = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+
+
+  <foo>
+
+    <bar b="b" a="a">el1</bar>
+
+  </foo>
+
+  <baz d="d" c="c"></baz>
+
+</root>
+
+XML;
+
+        $matchesWhitespace = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<ROOT>
+  <FOO>
+    <BAR a="a" b="b">el1</BAR>
+  </FOO>
+  <BAZ c="c" d="d" />
+</ROOT>
+
+XML;
+
+        $this->beConstructedWith(new SimpleXmlElement($self));
+
+        $this->sameAs($matchesAll, true, true)->shouldBe(true);
+        $this->sameAs($matchesAll, true, false)->shouldBe(true);
+        $this->sameAs($matchesAll, false, true)->shouldBe(true);
+        $this->sameAs($matchesAll, false, false)->shouldBe(true);
+
+        $this->sameAs($matchesCase, true, true)->shouldBe(true);
+        $this->sameAs($matchesCase, true, false)->shouldBe(true);
+        $this->sameAs($matchesCase, false, true)->shouldBe(false);
+        $this->sameAs($matchesCase, false, false)->shouldBe(false);
+
+        $this->sameAs($matchesWhitespace, true, true)->shouldBe(true);
+        $this->sameAs($matchesWhitespace, true, false)->shouldBe(false);
+        $this->sameAs($matchesWhitespace, false, true)->shouldBe(true);
+        $this->sameAs($matchesWhitespace, false, false)->shouldBe(false);
+    }
 }

@@ -81,17 +81,27 @@ class Xml
 
         // index defined, but does not exist - add it if possible
         if (!isset($el[$elementIndex])) {
-            return null;
+            return;
         }
 
         return $el[$elementIndex];
     }
 
+    /**
+     * Get the root SimpleXmlElement element.
+     *
+     * @return SimpleXmlElement
+     */
     public function root()
     {
         return $this->root;
     }
 
+    /**
+     * Get the formatted XML string.
+     *
+     * @return string
+     */
     public function formatted()
     {
         $doc = dom_import_simplexml($this->root)->ownerDocument;
@@ -174,7 +184,7 @@ class Xml
         foreach ($entries as $pathEntry) {
             $xml = $this->getNextElement($xml, $pathEntry);
             if ($xml === null) {
-                return null;
+                return;
             }
         }
 
@@ -193,7 +203,7 @@ class Xml
         }
 
         if (!isset($xml->$elementName)) {
-            return null;
+            return;
         }
 
         //  $root->$elementName[$elementIndex] can only be accessed in php7+
@@ -201,9 +211,64 @@ class Xml
         $el = $xml->$elementName;
 
         if (!isset($el[$elementIndex])) {
-            return null;
+            return;
         }
 
         return strval($el[$elementIndex]);
+    }
+
+    /**
+     * Get array "struct" from XML.
+     *
+     * @param bool $ignoreWhitespace
+     * @param bool $ignoreCase
+     *
+     * @return array
+     *
+     * @see xml_parse_into_struct
+     */
+    public function struct($ignoreWhitespace, $ignoreCase)
+    {
+        $parser = xml_parser_create();
+
+        xml_parser_set_option($parser, XML_OPTION_SKIP_WHITE,  $ignoreWhitespace ? 1 : 0);
+
+        xml_parser_set_option($parser, XML_OPTION_CASE_FOLDING, $ignoreCase ? 1 : 0);
+
+        xml_parse_into_struct($parser, $this->root()->asXml(), $struct, $index);
+
+        xml_parser_free($parser);
+
+        return $struct;
+    }
+
+    /**
+     * Check if XML is the same as another, within certain criteria
+     *
+     * @param string|SimpleXmlElement|Xml $other The xml to match
+     * @param bool $ignoreWhitespace Ignore whitespace between elements (but not in text contents of elements)
+     * @param bool $ignoreCase Ignore case difference in elements (but not in attributes and text contents of elements)
+     * @return bool
+     */
+    public function sameAs($other, $ignoreWhitespace, $ignoreCase)
+    {
+        if (is_string($other)) {
+            $prev = libxml_use_internal_errors(true);
+            $otherSimpleXml = @simplexml_load_string($other);
+            libxml_use_internal_errors($prev);
+            $otherXml = new static($otherSimpleXml);
+        } elseif ($other instanceof SimpleXmlElement) {
+            $otherXml = new static($other);
+        } elseif ($other instanceof self) {
+            $otherXml = $other;
+        } else {
+            throw new LogicException(sprintf(
+                'Argument 0 must be a string, a SimpleXmlElement or an instance of %s. %s given',
+                __CLASS__,
+                gettype($xml)
+            ));
+        }
+
+        return $otherXml->struct($ignoreWhitespace, $ignoreCase) == $this->struct($ignoreWhitespace, $ignoreCase);
     }
 }
