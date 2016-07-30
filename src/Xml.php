@@ -256,6 +256,9 @@ class Xml
             $prev = libxml_use_internal_errors(true);
             $otherSimpleXml = @simplexml_load_string($other);
             libxml_use_internal_errors($prev);
+            if (!($otherSimpleXml instanceof SimpleXmlElement)) {
+                throw new LogicException('Argument 0 was an invalid XML string');
+            }
             $otherXml = new static($otherSimpleXml);
         } elseif ($other instanceof SimpleXmlElement) {
             $otherXml = new static($other);
