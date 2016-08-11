@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of the Exemel package.
+ *
+ * @package Exemel
+ * @author Kim Ravn Hansen <moccalotto@gmail.com>
+ * @copyright 2016
+ * @license MIT
+ */
+
 namespace Moccalotto\Exemel;
 
 use LogicException;
@@ -22,7 +31,7 @@ class Xml
         // if a path is foo[bar] or foo[33], then return
         // ["foo", "bar"] or ["foo", 33];
 
-        if (!preg_match('/([a-zA-Z0-9_:.-]*)\[(.*?)\]$/A', $pathEntry, $matches)) {
+        if (! preg_match('/([a-zA-Z0-9_:.-]*)\[(.*?)\]$/A', $pathEntry, $matches)) {
             return [$pathEntry, null];
         }
 
@@ -53,7 +62,7 @@ class Xml
         $el = $root->$elementName;
 
         // index defined, but does not exist - add it if possible
-        if (!isset($el[$elementIndex])) {
+        if (! isset($el[$elementIndex])) {
             $el[$elementIndex] = null;
         }
 
@@ -80,7 +89,7 @@ class Xml
         $el = $root->$elementName;
 
         // index defined, but does not exist - add it if possible
-        if (!isset($el[$elementIndex])) {
+        if (! isset($el[$elementIndex])) {
             return;
         }
 
@@ -153,7 +162,7 @@ class Xml
             return $this;
         }
 
-        if ($elementName == '') {
+        if ($elementName === '') {
             $xml[$elementIndex] = $value;
 
             return $this;
@@ -198,11 +207,11 @@ class Xml
             return isset($xml->$elementName) ? strval($xml->$elementName) : null;
         }
 
-        if ($elementName == '') {
+        if ($elementName === '') {
             return isset($xml[$elementIndex]) ? strval($xml[$elementIndex]) : null;
         }
 
-        if (!isset($xml->$elementName)) {
+        if (! isset($xml->$elementName)) {
             return;
         }
 
@@ -210,7 +219,7 @@ class Xml
         //  is $el = $root->$elementName; $el[$elementIndex] as a workaround
         $el = $xml->$elementName;
 
-        if (!isset($el[$elementIndex])) {
+        if (! isset($el[$elementIndex])) {
             return;
         }
 
@@ -243,7 +252,7 @@ class Xml
     }
 
     /**
-     * Check if XML is the same as another, within certain criteria
+     * Check if XML is the same as another, within certain criteria.
      *
      * @param string|SimpleXmlElement|Xml $other The xml to match
      * @param bool $ignoreWhitespace Ignore whitespace between elements (but not in text contents of elements)
@@ -256,7 +265,7 @@ class Xml
             $prev = libxml_use_internal_errors(true);
             $otherSimpleXml = @simplexml_load_string($other);
             libxml_use_internal_errors($prev);
-            if (!($otherSimpleXml instanceof SimpleXmlElement)) {
+            if (! ($otherSimpleXml instanceof SimpleXmlElement)) {
                 throw new LogicException('Argument 0 was an invalid XML string');
             }
             $otherXml = new static($otherSimpleXml);
@@ -272,6 +281,6 @@ class Xml
             ));
         }
 
-        return $otherXml->struct($ignoreWhitespace, $ignoreCase) == $this->struct($ignoreWhitespace, $ignoreCase);
+        return $otherXml->struct($ignoreWhitespace, $ignoreCase) === $this->struct($ignoreWhitespace, $ignoreCase);
     }
 }
