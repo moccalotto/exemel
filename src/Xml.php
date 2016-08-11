@@ -281,6 +281,6 @@ class Xml
             ));
         }
 
-        return $otherXml->struct($ignoreWhitespace, $ignoreCase) === $this->struct($ignoreWhitespace, $ignoreCase);
+        return $otherXml->struct($ignoreWhitespace, $ignoreCase) == $this->struct($ignoreWhitespace, $ignoreCase);
     }
 }
