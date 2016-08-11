@@ -3,9 +3,23 @@
 use Symfony\CS\Config\Config;
 use Symfony\CS\FixerInterface;
 use Symfony\CS\Finder\DefaultFinder;
+use Symfony\CS\Fixer\Contrib\HeaderCommentFixer;
+
+$header = <<<EOF
+This file is part of the Exemel package.
+
+@package Exemel
+@author Kim Ravn Hansen <moccalotto@gmail.com>
+@copyright 2016
+@license MIT
+
+EOF;
+
+HeaderCommentFixer::setHeader($header);
 
 $fixers = [
     '-psr0',
+    'psr1',
     'psr2',
     'strict',
     'strict_param',
@@ -73,6 +87,7 @@ $fixers = [
     'unused_use',
     'visibility',
     'whitespacy_lines',
+    'header_comment',
 ];
 
 return Config::create()
